@@ -39,17 +39,17 @@ const NeonClock = () => {
     <div className="flex justify-center items-center p-8">
       <div className="bg-black/90 rounded-lg p-8 shadow-[0_0_20px_rgba(62,220,247,0.7)]">
         <div className="flex gap-4 text-7xl font-mono">
-          <div className="text-[#3edcf7] animate-pulse shadow-[0_0_20px_rgba(62,220,247,0.7)]">
+          <div className="text-[#3edcf7] shadow-[0_0_20px_rgba(62,220,247,0.7)]">
             {time.hours}
           </div>
-          <div className="text-[#3edcf7] animate-pulse">:</div>
-          <div className="text-[#3edcf7] animate-pulse shadow-[0_0_20px_rgba(62,220,247,0.7)]">
+          <div className="text-[#3edcf7]">:</div>
+          <div className="text-[#3edcf7] shadow-[0_0_20px_rgba(62,220,247,0.7)]">
             {time.minutes}
           </div>
-          <div className="text-[#3edcf7] animate-pulse">:</div>
+          {/* <div className="text-[#3edcf7] animate-pulse">:</div>
           <div className="text-[#3edcf7] animate-pulse shadow-[0_0_20px_rgba(62,220,247,0.7)]">
             {time.seconds}
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

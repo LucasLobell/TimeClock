@@ -1,11 +1,11 @@
-import NeonClock from "@/components/NeonClock";
-import Image from "next/image";
+import NavBar from "@/components/NavBar";
+import Point from "@/components/Point";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      aaaaaaa
-      <NeonClock />
+    <div className="">
+      <NavBar iconHouse={false} />
+      <Point />
     </div>
   );
 }
