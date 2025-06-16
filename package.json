@@ -13,7 +13,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "dayjs": "^1.11.13",
-    "next": "15.1.4",
+    "next": "^15.3.3",
     "react": "^19.0.0",
     "react-calendar": "^5.1.0",
     "react-datepicker": "^7.6.0",
