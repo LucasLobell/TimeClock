@@ -1,13 +1,14 @@
 import NavBar from "@/components/NavBar";
 import Point from "@/components/Point";
 import PointCard from "@/components/PointCard";
+import TimeClock from "@/components/TimeClock";
 
 export default function Home() {
   return (
     <div className="">
       <NavBar iconHouse={false} />
-      <div className="flex flex-row justify-self-center gap-8">
-        <PointCard />
+      <div className="">
+        <TimeClock />
       </div>
     </div>
   );

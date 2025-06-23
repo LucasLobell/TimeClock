@@ -3,42 +3,55 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "./CCard";
 
-const PointCard = () => {
-  const [centerTime, setCenterTime] = useState("");
+interface PointCardProps {
+  label: string;
+  storageKey: string;
+  value: string;
+  setValue: (val: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+}
+
+const PointCard: React.FC<PointCardProps> = ({
+  label,
+  storageKey,
+  value,
+  setValue,
+  disabled = false,
+  placeholder,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
 
   // Load from localStorage once on mount
   useEffect(() => {
-    const savedTime = localStorage.getItem("pointCardCenterTime");
-    if (savedTime) setCenterTime(savedTime);
+    const savedTime = localStorage.getItem(storageKey);
+    if (savedTime) setValue(savedTime);
+    // eslint-disable-next-line
   }, []);
 
-  // Save to localStorage whenever centerTime changes
+  // Save to localStorage whenever value changes
   useEffect(() => {
-    if (centerTime) {
-      localStorage.setItem("pointCardCenterTime", centerTime);
+    if (value) {
+      localStorage.setItem(storageKey, value);
     } else {
-      localStorage.removeItem("pointCardCenterTime");
+      localStorage.removeItem(storageKey);
     }
-  }, [centerTime]);
+  }, [value, storageKey]);
 
   const fixPartialTime = (time: string) => {
-    // If format is H H : M (3 digits total)
     if (!time.includes(":")) return time;
     const parts = time.split(":");
     if (parts.length !== 2) return time;
-  
+
     let [hStr, mStr] = parts;
-  
-    // If minutes length is 1, add '0' at the end
+
     if (mStr.length === 1) {
       mStr = mStr + "0";
     }
-  
-    // Make sure both parts have 2 digits
+
     if (hStr.length === 1) hStr = "0" + hStr;
-    if (mStr.length === 1) mStr = "0" + mStr; // just in case
-  
+    if (mStr.length === 1) mStr = "0" + mStr;
+
     return `${hStr}:${mStr}`;
   };
 
@@ -52,8 +65,8 @@ const PointCard = () => {
     return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
   };
 
-  const formatTimeInput = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 4);
+  const formatTimeInput = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
     if (digits.length <= 2) return digits;
     return `${digits.slice(0, 2)}:${digits.slice(2)}`;
   };
@@ -74,8 +87,8 @@ const PointCard = () => {
     return `${h}:${m}`;
   };
 
-  const topTime = centerTime ? parseTime(centerTime, -1) : "";
-  const bottomTime = centerTime ? parseTime(centerTime, 1) : "";
+  const topTime = value ? parseTime(value, -1) : "";
+  const bottomTime = value ? parseTime(value, 1) : "";
 
   return (
     <div className="w-[348px] h-[280px]">
@@ -84,7 +97,7 @@ const PointCard = () => {
           {/* Title */}
           <div className="text-center mb-4">
             <h2 className="font-['Istok_Web'] text-xl text-[#d9d9d9]">
-              Entrada da Manhã
+              {label}
             </h2>
           </div>
 
@@ -101,7 +114,7 @@ const PointCard = () => {
           {/* Center Time - Editable */}
           <div
             className="relative w-74 h-[90px] mx-auto my-4 cursor-pointer"
-            onClick={() => setIsEditing(true)}
+            onClick={() => !disabled && setIsEditing(true)}
           >
             <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-[64px] text-center text-[#ffffff14] opacity-90">
               88:88
@@ -109,22 +122,24 @@ const PointCard = () => {
 
             <input
               type="text"
-              value={centerTime}
-              onChange={(e) => setCenterTime(formatTimeInput(e.target.value))}
-              onFocus={() => setIsEditing(true)}
+              value={value}
+              onChange={(e) => setValue(formatTimeInput(e.target.value))}
+              onFocus={() => !disabled && setIsEditing(true)}
               onBlur={() => {
                 setIsEditing(false);
-              
-                let fixedTime = fixPartialTime(centerTime);
-              
+
+                let fixedTime = fixPartialTime(value);
+
                 if (!isValidTime(fixedTime)) {
-                  fixedTime = "23:59";
+                  fixedTime = "";
                 }
-              
-                setCenterTime(fixedTime);
-              }}              
+
+                setValue(fixedTime);
+              }}
               maxLength={5}
               autoFocus={isEditing}
+              disabled={disabled}
+              placeholder={placeholder}
               className="absolute mt-[2.5px] inset-0 w-full h-full font-['Digital_Numbers-Regular'] text-[64px] text-center text-white bg-transparent outline-none [text-shadow:0px_0px_6px_#59ff00] placeholder-[#ffffff1a] px-2"
             />
           </div>
