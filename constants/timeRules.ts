@@ -1,0 +1,12 @@
+export const MIN_MORNING_ENTRY = "07:00";
+export const MAX_MORNING_ENTRY = "09:00";
+export const MIN_MORNING_EXIT = "11:30";
+export const MIN_MORNING_HOURS = 3;
+export const MAX_MORNING_HOURS = 5;
+export const MIN_LUNCH_BREAK = 30; // minutes
+export const MIN_AFTERNOON_HOURS = 3;
+export const MAX_AFTERNOON_HOURS = 5;
+export const MAX_AFTERNOON_ENTRY = "14:00";
+export const MIN_AFTERNOON_EXIT = "17:00";
+export const MAX_AFTERNOON_EXIT = "19:00";
+export const WORKDAY_MINUTES = 8 * 60;

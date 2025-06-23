@@ -17,8 +17,12 @@ const inter = Inter({
   variable: '--font-inter',
 })
 
-const DateComponent = () => {
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+interface DateComponentProps {
+  selectedDate: Date;
+  setSelectedDate: (date: Date) => void;
+}
+
+const DateComponent = ({ selectedDate, setSelectedDate }: DateComponentProps) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleDateChange = (date: Value) => {
@@ -28,7 +32,7 @@ const DateComponent = () => {
         setIsOpen(false);
     };
 
-    const formattedDate = selectedDate ? dayjs(selectedDate,).format('DD [de] MMMM [de] YYYY') : '';
+    const formattedDate = selectedDate ? dayjs(selectedDate).format('DD [de] MMMM [de] YYYY') : '';
 
     return (
       <div className="absolute flex flex-col items-center mt-[50px]">

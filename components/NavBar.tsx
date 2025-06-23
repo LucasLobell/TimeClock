@@ -3,13 +3,14 @@ import DateComponent from './DateComponent'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUserGear } from '@fortawesome/free-solid-svg-icons/faUserGear'
 import { faHouse } from '@fortawesome/free-solid-svg-icons/faHouse';
+import { NavBarProps } from '@/types/NavBarProps';
 
-interface NavBarProps {
-  iconHouse?: boolean;
-  iconProfile?: boolean;
-}
-
-const NavBar = ({ iconHouse = true, iconProfile = true }: NavBarProps) => {
+const NavBar = ({
+  iconHouse = true,
+  iconProfile = true,
+  selectedDate,
+  setSelectedDate,
+}: NavBarProps) => {
   return (
     <div className='w-full flex flex-row items-start h-fill'>
         {iconHouse && (
@@ -18,7 +19,7 @@ const NavBar = ({ iconHouse = true, iconProfile = true }: NavBarProps) => {
           </a>
         )}
           <div className={`flex flex-grow justify-center ${!iconHouse && 'ml-10'} ${!iconProfile && 'mr-10'}`}>
-              <DateComponent />
+              <DateComponent selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
           </div>
         {iconProfile && (
           <a href='/profile' className='mr-[50px] mt-[50px]'>

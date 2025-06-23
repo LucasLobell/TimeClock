@@ -1,75 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "./CCard";
-
-interface PointCardProps {
-  label: string;
-  storageKey: string;
-  value: string;
-  setValue: (val: string) => void;
-  disabled?: boolean;
-  placeholder?: string;
-}
+import { fixPartialTime, isValidTime, formatTimeInput } from "../utils/time";
+import { PointCardProps } from "../types/PointCardProps";
 
 const PointCard: React.FC<PointCardProps> = ({
   label,
-  storageKey,
   value,
   setValue,
   disabled = false,
   placeholder,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-
-  // Load from localStorage once on mount
-  useEffect(() => {
-    const savedTime = localStorage.getItem(storageKey);
-    if (savedTime) setValue(savedTime);
-    // eslint-disable-next-line
-  }, []);
-
-  // Save to localStorage whenever value changes
-  useEffect(() => {
-    if (value) {
-      localStorage.setItem(storageKey, value);
-    } else {
-      localStorage.removeItem(storageKey);
-    }
-  }, [value, storageKey]);
-
-  const fixPartialTime = (time: string) => {
-    if (!time.includes(":")) return time;
-    const parts = time.split(":");
-    if (parts.length !== 2) return time;
-
-    let [hStr, mStr] = parts;
-
-    if (mStr.length === 1) {
-      mStr = mStr + "0";
-    }
-
-    if (hStr.length === 1) hStr = "0" + hStr;
-    if (mStr.length === 1) mStr = "0" + mStr;
-
-    return `${hStr}:${mStr}`;
-  };
-
-  const isValidTime = (time: string) => {
-    if (!time.includes(":")) return false;
-    const [hStr, mStr] = time.split(":");
-    if (hStr.length !== 2 || mStr.length !== 2) return false;
-    const hours = parseInt(hStr, 10);
-    const minutes = parseInt(mStr, 10);
-    if (isNaN(hours) || isNaN(minutes)) return false;
-    return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
-  };
-
-  const formatTimeInput = (val: string) => {
-    const digits = val.replace(/\D/g, "").slice(0, 4);
-    if (digits.length <= 2) return digits;
-    return `${digits.slice(0, 2)}:${digits.slice(2)}`;
-  };
 
   const parseTime = (time: string, delta: number) => {
     const [hStr, mStr] = time.split(":");
