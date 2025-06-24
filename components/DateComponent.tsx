@@ -18,42 +18,47 @@ const inter = Inter({
 })
 
 interface DateComponentProps {
-  selectedDate: Date;
+  selectedDate: Date | null;
   setSelectedDate: (date: Date) => void;
 }
 
 const DateComponent = ({ selectedDate, setSelectedDate }: DateComponentProps) => {
-    const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-    const handleDateChange = (date: Value) => {
-        if (date) {
-            setSelectedDate(new Date(date.toString()));
-        }
-        setIsOpen(false);
-    };
+  const handleDateChange = (date: Value) => {
+    if (date) {
+      setSelectedDate(new Date(date.toString()));
+    }
+    setIsOpen(false);
+  };
 
-    const formattedDate = selectedDate ? dayjs(selectedDate).format('DD [de] MMMM [de] YYYY') : '';
+  const formattedDate = selectedDate
+    ? dayjs(selectedDate).format('DD [de] MMMM [de] YYYY')
+    : '';
 
-    return (
-      <div className="absolute flex flex-col items-center mt-[50px]">
-            <div
-                className="flex flex-row items-center text-white cursor-pointer w-[348px]"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <div className={`${inter.variable} font-sans flex-grow text-center text-base font-normal`}>{formattedDate}</div>
-                <div className="flex justify-end items-center">
-                    <FontAwesomeIcon icon={faChevronDown} />
-                </div>
-            </div>
-            {isOpen && (
-                <Calendar 
-                    onChange={handleDateChange}
-                    value={selectedDate}
-                    locale="pt-BR"
-                />
-            )}
+  // Don't render calendar until date is set
+  if (!selectedDate) return null;
+
+  return (
+    <div className="absolute flex flex-col items-center mt-[50px]">
+      <div
+        className="flex flex-row items-center text-white cursor-pointer w-[348px]"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className={`${inter.variable} font-sans flex-grow text-center text-base font-normal`}>{formattedDate}</div>
+        <div className="flex justify-end items-center">
+          <FontAwesomeIcon icon={faChevronDown} />
         </div>
-    );
+      </div>
+      {isOpen && (
+        <Calendar
+          onChange={handleDateChange}
+          value={selectedDate}
+          locale="pt-BR"
+        />
+      )}
+    </div>
+  );
 };
 
 export default DateComponent;

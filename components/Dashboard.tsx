@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NavBar from "./NavBar";
 import TimeClock from "./TimeClock";
 
@@ -17,8 +17,17 @@ function getDateKey(date: Date) {
 }
 
 const Dashboard = () => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  // Start with null to avoid SSR mismatch
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [allTimes, setAllTimes] = useState<Record<string, TimesForDay>>({});
+
+  // Set the date on the client only
+  useEffect(() => {
+    setSelectedDate(new Date());
+  }, []);
+
+  // Don't render children until date is set
+  if (!selectedDate) return null;
 
   const dateKey = getDateKey(selectedDate);
   const times = allTimes[dateKey] || {
