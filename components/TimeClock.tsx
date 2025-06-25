@@ -15,7 +15,22 @@ import {
   handleAfternoonExitChange,
 } from "../utils/timeHandlers";
 import {
+  MIN_LUNCH_BREAK,
+  MAX_AFTERNOON_ENTRY,
+  MAX_AFTERNOON_EXIT,
+  MIN_AFTERNOON_EXIT,
+  MIN_MORNING_EXIT,
+  MIN_MORNING_HOURS,
+  MAX_MORNING_HOURS,
+  MAX_AFTERNOON_HOURS,
+  MIN_AFTERNOON_HOURS,
+  MAX_MORNING_ENTRY,
+  MIN_MORNING_ENTRY,
+} from "../constants/timeRules";
+import {
   isValidTime,
+  minutesToTime,
+  timeToMinutes
 } from "../utils/time";
 
 /**
@@ -81,6 +96,19 @@ const TimeClock = ({
     // eslint-disable-next-line
   }, [morningExit, morningEntry]);
 
+useEffect(() => {
+  if (
+    isValidTime(morningExit) &&
+    isValidTime(afternoonEntry)
+  ) {
+    const minAfternoonEntry = timeToMinutes(morningExit) + MIN_LUNCH_BREAK;
+    if (timeToMinutes(afternoonEntry) < minAfternoonEntry) {
+      setAfternoonEntry(minutesToTime(minAfternoonEntry));
+    }
+  }
+  // eslint-disable-next-line
+}, [morningExit]);
+
   /**
    * Auto-set afternoonEntry when morningExit changes,
    * unless user changed it or it matches the auto value,
@@ -89,14 +117,26 @@ const TimeClock = ({
   useEffect(() => {
     if (
       morningExitWasSet &&
-      isValidTime(morningExit) &&
-      (!userChangedAfternoonEntry.current ||
-        afternoonEntry === "" ||
-        afternoonEntry === autoAfternoonEntry(morningExit))
+      isValidTime(morningExit)
     ) {
+      const minAfternoonEntry = timeToMinutes(morningExit) + MIN_LUNCH_BREAK;
+      const currentAfternoonEntry = isValidTime(afternoonEntry)
+        ? timeToMinutes(afternoonEntry)
+        : null;
       const autoValue = autoAfternoonEntry(morningExit);
-      setAfternoonEntry(autoValue);
-      userChangedAfternoonEntry.current = false;
+
+      console.log("[AfternoonEntry Effect] morningExit:", morningExit, "afternoonEntry:", afternoonEntry, "userChangedAfternoonEntry:", userChangedAfternoonEntry.current, "minAfternoonEntry:", minAfternoonEntry, "autoValue:", autoValue);
+
+      // If afternoonEntry is missing or lunch break is too short, force update
+      if (
+        afternoonEntry === "" ||
+        currentAfternoonEntry === null ||
+        currentAfternoonEntry < minAfternoonEntry
+      ) {
+        setAfternoonEntry(autoValue);
+        userChangedAfternoonEntry.current = false;
+        console.log("[AfternoonEntry Effect] Auto-setting afternoonEntry to:", autoValue);
+      }
     }
     // eslint-disable-next-line
   }, [morningExit, morningExitWasSet]);
@@ -111,14 +151,40 @@ const TimeClock = ({
       morningExitWasSet &&
       isValidTime(morningEntry) &&
       isValidTime(morningExit) &&
-      isValidTime(afternoonEntry) &&
-      (!userChangedAfternoonExit.current ||
-        afternoonExit === "" ||
-        afternoonExit === autoAfternoonExit(morningEntry, morningExit, afternoonEntry))
+      isValidTime(afternoonEntry)
     ) {
       const autoValue = autoAfternoonExit(morningEntry, morningExit, afternoonEntry);
-      setAfternoonExit(autoValue);
-      userChangedAfternoonExit.current = false;
+      const estimated = autoValue;
+      const estimatedMinutes = timeToMinutes(estimated);
+      let minExit = estimatedMinutes - 5;
+      const strictMaxBy5h = timeToMinutes(afternoonEntry) + 5 * 60;
+      const strictMaxBy19 = timeToMinutes(MAX_AFTERNOON_EXIT);
+      const maxExit = Math.min(
+        estimatedMinutes + 10,
+        strictMaxBy5h + 10,
+        strictMaxBy19 + 10
+      );
+      // Use a valid time string for min
+      minExit = Math.max(
+        minExit,
+        timeToMinutes(MIN_AFTERNOON_EXIT),
+        timeToMinutes(afternoonEntry) + 3 * 60
+      );
+      const minAllowed = { min: minExit, max: maxExit };
+
+      const currentMinutes = timeToMinutes(afternoonExit);
+
+      // If user never changed, or it's empty, or matches auto, or is now invalid (out of allowed range)
+      if (
+        !userChangedAfternoonExit.current ||
+        afternoonExit === "" ||
+        afternoonExit === autoValue ||
+        currentMinutes < minAllowed.min ||
+        currentMinutes > minAllowed.max
+      ) {
+        setAfternoonExit(autoValue);
+        userChangedAfternoonExit.current = false;
+      }
     }
     // eslint-disable-next-line
   }, [morningEntry, morningExit, afternoonEntry, morningExitWasSet]);
@@ -137,13 +203,14 @@ const TimeClock = ({
         label="Saída da Manhã"
         storageKey="morningExit"
         value={morningExit}
-        setValue={val => handleMorningExitChange(
-          val,
-          morningEntry,
-          afternoonEntry,
-          setMorningExit,
-          userChangedMorningExit
-        )}
+        setValue={val =>
+          handleMorningExitChange(
+            val,
+            morningEntry,
+            setMorningExit,
+            userChangedMorningExit,
+          )
+        }
       />
       <PointCard
         label="Entrada da Tarde"

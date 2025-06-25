@@ -58,14 +58,11 @@ export function handleMorningEntryChange(
 export function handleMorningExitChange(
   val: string,
   morningEntry: string,
-  afternoonEntry: string,
   setMorningExit: (v: string) => void,
   userChangedMorningExit: React.MutableRefObject<boolean>
 ) {
   let v = val;
-  if (v.length === 5) {
-    v = fixPartialTime(v);
-  }
+  if (v.length === 5) v = fixPartialTime(v);
   let wasCorrected = false;
   if (isValidTime(v) && isValidTime(morningEntry)) {
     const minExit = Math.max(
@@ -80,23 +77,10 @@ export function handleMorningExitChange(
     if (v !== original) wasCorrected = true;
     if (timeToMinutes(v) < timeToMinutes(morningEntry)) {
       v = morningEntry;
-    }
-    // Enforce lunch break: morningExit cannot be so late that lunch break is < MIN_LUNCH_BREAK
-    if (isValidTime(afternoonEntry)) {
-      const minLunchBreak = MIN_LUNCH_BREAK;
-      const minAllowedAfternoonEntry = timeToMinutes(v) + minLunchBreak;
-      if (timeToMinutes(afternoonEntry) < minAllowedAfternoonEntry) {
-        // Clamp morningExit so that lunch break is at least MIN_LUNCH_BREAK
-        v = minutesToTime(timeToMinutes(afternoonEntry) - minLunchBreak);
-        // Also clamp to min/max exit
-        if (timeToMinutes(v) < timeToMinutes(vMin)) v = vMin;
-        if (timeToMinutes(v) > timeToMinutes(vMax)) v = vMax;
-      }
-    }
-    if (isValidTime(afternoonEntry) && timeToMinutes(v) > timeToMinutes(afternoonEntry)) {
-      v = afternoonEntry;
+      wasCorrected = true;
     }
   }
+
   setMorningExit(v);
   userChangedMorningExit.current = !wasCorrected;
 }

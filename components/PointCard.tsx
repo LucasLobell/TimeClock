@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { Card, CardContent } from "./CCard";
-import { fixPartialTime, isValidTime, formatTimeInput } from "../utils/time";
+import { fixPartialTime, isValidTime, formatTimeInput, timeToMinutes } from "../utils/time";
 import { PointCardProps } from "../types/PointCardProps";
+import { autoAfternoonEntry } from "@/utils/timeLogic";
 
 const PointCard: React.FC<PointCardProps> = ({
   label,
@@ -65,6 +66,7 @@ const PointCard: React.FC<PointCardProps> = ({
 
             <input
               type="text"
+              key={value}
               value={value}
               onChange={(e) => setValue(formatTimeInput(e.target.value))}
               onFocus={() => !disabled && setIsEditing(true)}
