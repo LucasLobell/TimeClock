@@ -125,8 +125,6 @@ useEffect(() => {
         : null;
       const autoValue = autoAfternoonEntry(morningExit);
 
-      console.log("[AfternoonEntry Effect] morningExit:", morningExit, "afternoonEntry:", afternoonEntry, "userChangedAfternoonEntry:", userChangedAfternoonEntry.current, "minAfternoonEntry:", minAfternoonEntry, "autoValue:", autoValue);
-
       // If afternoonEntry is missing or lunch break is too short, force update
       if (
         afternoonEntry === "" ||
@@ -135,7 +133,6 @@ useEffect(() => {
       ) {
         setAfternoonEntry(autoValue);
         userChangedAfternoonEntry.current = false;
-        console.log("[AfternoonEntry Effect] Auto-setting afternoonEntry to:", autoValue);
       }
     }
     // eslint-disable-next-line

@@ -2,9 +2,8 @@
 
 import React, { useState } from "react";
 import { Card, CardContent } from "./CCard";
-import { fixPartialTime, isValidTime, formatTimeInput, timeToMinutes } from "../utils/time";
+import { fixPartialTime, isValidTime, formatTimeInput } from "../utils/time";
 import { PointCardProps } from "../types/PointCardProps";
-import { autoAfternoonEntry } from "@/utils/timeLogic";
 
 const PointCard: React.FC<PointCardProps> = ({
   label,
