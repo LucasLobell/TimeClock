@@ -19,8 +19,6 @@ import {
   fixPartialTime,
 } from "./time";
 import {
-  autoMorningExit,
-  autoAfternoonEntry,
   autoAfternoonExit,
 } from "./timeLogic";
 
