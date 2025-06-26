@@ -1,17 +1,29 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { account, ID } from "../appwrite";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
+  const router = useRouter();
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [name, setName] = useState<string>("");
 
+  useEffect(() => {
+    // Check for active session on mount
+    account
+      .get()
+      .then((user) => setLoggedInUser(user))
+      .catch(() => setLoggedInUser(null));
+  }, []);
+
   const login = async (email: string, password: string) => {
     try {
       await account.createEmailPasswordSession(email, password);
-      setLoggedInUser(await account.get());
+      const user = await account.get();
+      setLoggedInUser(user);
+      router.replace("/");
     } catch (error: string | any) {
       alert("Login failed: " + error.message);
     }

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { account } from "@/app/appwrite";
 import NavBar from "./NavBar";
 import TimeClock from "./TimeClock";
 
@@ -17,17 +19,24 @@ function getDateKey(date: Date) {
 }
 
 const Dashboard = () => {
-  // Start with null to avoid SSR mismatch
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [allTimes, setAllTimes] = useState<Record<string, TimesForDay>>({});
+  const [loading, setLoading] = useState(true);
 
-  // Set the date on the client only
+  // Check for active session on mount
   useEffect(() => {
+    account
+      .get()
+      .then(() => setLoading(false))
+      .catch(() => {
+        router.replace("/login");
+      });
     setSelectedDate(new Date());
-  }, []);
+  }, [router]);
 
-  // Don't render children until date is set
-  if (!selectedDate) return null;
+  // Wait for session check before rendering
+  if (loading || !selectedDate) return null;
 
   const dateKey = getDateKey(selectedDate);
   const times = allTimes[dateKey] || {
@@ -37,7 +46,6 @@ const Dashboard = () => {
     afternoonExit: "",
   };
 
-  // When a time changes, update only the current date's times
   const setTimeForDay = (field: keyof TimesForDay, value: string) => {
     setAllTimes((prev) => ({
       ...prev,
