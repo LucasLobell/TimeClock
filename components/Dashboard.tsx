@@ -5,56 +5,37 @@ import { useRouter } from "next/navigation";
 import { account } from "@/app/appwrite";
 import NavBar from "./NavBar";
 import TimeClock from "./TimeClock";
-
-type TimesForDay = {
-  morningEntry: string;
-  morningExit: string;
-  afternoonEntry: string;
-  afternoonExit: string;
-};
-
-function getDateKey(date: Date) {
-  // Always use YYYY-MM-DD for keys
-  return date.toISOString().slice(0, 10);
-}
+import { getDateKey, useUserTimes } from "@/utils/time";
 
 const Dashboard = () => {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [allTimes, setAllTimes] = useState<Record<string, TimesForDay>>({});
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const { allTimes, setTimeForDay } = useUserTimes(userId, selectedDate);
 
-  // Check for active session on mount
+  // Check for active session and get userId
   useEffect(() => {
     account
       .get()
-      .then(() => setLoading(false))
+      .then((user) => {
+        setUserId(user.$id);
+        setLoading(false);
+        setSelectedDate(new Date());
+      })
       .catch(() => {
         router.replace("/login");
       });
-    setSelectedDate(new Date());
   }, [router]);
 
-  // Wait for session check before rendering
   if (loading || !selectedDate) return null;
-
-  const dateKey = getDateKey(selectedDate);
-  const times = allTimes[dateKey] || {
+  
+  const dateKey = selectedDate ? getDateKey(selectedDate) : "";
+  const times = (allTimes && allTimes[dateKey]) || {
     morningEntry: "",
     morningExit: "",
     afternoonEntry: "",
     afternoonExit: "",
-  };
-
-  const setTimeForDay = (field: keyof TimesForDay, value: string) => {
-    setAllTimes((prev) => ({
-      ...prev,
-      [dateKey]: {
-        ...prev[dateKey],
-        ...times,
-        [field]: value,
-      },
-    }));
   };
 
   return (
@@ -69,13 +50,13 @@ const Dashboard = () => {
           <TimeClock
             selectedDate={selectedDate}
             morningEntry={times.morningEntry}
-            setMorningEntry={(v) => setTimeForDay("morningEntry", v)}
+            setMorningEntry={(v) => setTimeForDay({ morningEntry: v })}
             morningExit={times.morningExit}
-            setMorningExit={(v) => setTimeForDay("morningExit", v)}
+            setMorningExit={(v) => setTimeForDay({ morningExit: v })}
             afternoonEntry={times.afternoonEntry}
-            setAfternoonEntry={(v) => setTimeForDay("afternoonEntry", v)}
+            setAfternoonEntry={(v) => setTimeForDay({ afternoonEntry: v })}
             afternoonExit={times.afternoonExit}
-            setAfternoonExit={(v) => setTimeForDay("afternoonExit", v)}
+            setAfternoonExit={(v) => setTimeForDay({ afternoonExit: v })}
           />
         </div>
       </div>

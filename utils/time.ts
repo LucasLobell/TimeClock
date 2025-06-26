@@ -1,3 +1,7 @@
+import { databases } from "@/app/appwrite";
+import { ID, Query } from "appwrite";
+import { useState, useEffect, useCallback, useRef } from "react";
+
 /**
  * Ensures a time string is in HH:MM format and clamps minutes to 59 if greater.
  * Only applies correction if the string contains a colon and is split into two parts.
@@ -83,4 +87,111 @@ export function formatTimeInput(val: string) {
   const digits = val.replace(/\D/g, "").slice(0, 4);
   if (digits.length <= 2) return digits;
   return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+}
+
+const DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
+const COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID!;
+
+export async function getTimesForUserDate(userId: string, date: string) {
+  const res = await databases.listDocuments(DB_ID, COLLECTION_ID, [
+    // Appwrite query: filter by userId and date
+    // @ts-ignore
+    Query.equal("userId", userId),
+    // @ts-ignore
+    Query.equal("date", date),
+  ]);
+  return res.documents[0] || null;
+}
+
+export async function upsertTimesForUserDate(userId: string, date: string, data: Partial<Record<string, string>>) {
+  // Try to find existing doc
+  const existing = await getTimesForUserDate(userId, date);
+  if (existing) {
+    // Update only the provided fields
+    return databases.updateDocument(DB_ID, COLLECTION_ID, existing.$id, data);
+  } else {
+    // Create new doc
+    return databases.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
+      userId,
+      date,
+      ...data,
+    });
+  }
+}
+
+export function useUserTimes(userId: string | null, selectedDate: Date | null) {
+  const [allTimes, setAllTimes] = useState<Record<string, any>>({});
+  const upsertTimeout = useRef<NodeJS.Timeout | null>(null);
+  const pendingFields = useRef<Partial<Record<string, string>>>({});
+
+  useEffect(() => {
+    if (!userId || !selectedDate) return;
+    const dateKey = selectedDate.toISOString().slice(0, 10);
+    getTimesForUserDate(userId, dateKey).then((doc) => {
+      setAllTimes((prev) => ({
+        ...prev,
+        [dateKey]: {
+          morningEntry: doc?.morningEntry || "",
+          morningExit: doc?.morningExit || "",
+          afternoonEntry: doc?.afternoonEntry || "",
+          afternoonExit: doc?.afternoonExit || "",
+        },
+      }));
+    });
+  }, [userId, selectedDate]);
+
+  const setTimeForDay = useCallback(
+    (fields: Partial<Record<string, string>>) => {
+      if (!userId || !selectedDate) return;
+      const dateKey = selectedDate.toISOString().slice(0, 10);
+
+      setAllTimes((prev) => {
+        const prevDay = prev[dateKey] || {
+          morningEntry: "",
+          morningExit: "",
+          afternoonEntry: "",
+          afternoonExit: "",
+        };
+        const updatedDay = { ...prevDay, ...fields };
+        return {
+          ...prev,
+          [dateKey]: updatedDay,
+        };
+      });
+
+      // Merge fields into pendingFields
+      pendingFields.current = { ...pendingFields.current, ...fields };
+
+      // Debounce upsert
+      if (upsertTimeout.current) clearTimeout(upsertTimeout.current);
+      upsertTimeout.current = setTimeout(() => {
+        const toUpsert = { ...pendingFields.current };
+        pendingFields.current = {};
+
+        // Only upsert if at least one valid time is present
+        const validEntries = Object.entries(toUpsert).filter(
+          ([, v]) => v && isValidTime(v)
+        );
+        if (validEntries.length === 0) {
+          // Nothing valid to save, skip DB call
+          return;
+        }
+
+        // Only upsert valid fields
+        const validFields = Object.fromEntries(validEntries);
+
+        upsertTimesForUserDate(userId, dateKey, validFields).catch((e) => {
+          console.error(e);
+        });
+      }, 100); // 100ms debounce
+    },
+    [userId, selectedDate]
+  );
+
+  return { allTimes, setTimeForDay };
+}
+
+// Helper to get YYYY-MM-DD string from selectedDate
+export function getDateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
 }
