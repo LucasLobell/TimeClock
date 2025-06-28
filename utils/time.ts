@@ -1,6 +1,7 @@
 import { databases } from "@/app/appwrite";
 import { ID, Query } from "appwrite";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 /**
  * Ensures a time string is in HH:MM format and clamps minutes to 59 if greater.
@@ -120,6 +121,17 @@ export async function upsertTimesForUserDate(userId: string, date: string, data:
 }
 
 export function useUserTimes(userId: string | null, selectedDate: Date | null) {
+  const dateKey = selectedDate ? selectedDate.toISOString().slice(0, 10) : "";
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["userTimes", userId, dateKey],
+    queryFn: () =>
+      userId && dateKey
+        ? getTimesForUserDate(userId, dateKey)
+        : Promise.resolve(null),
+    enabled: !!userId && !!selectedDate,
+  });
+
   const [allTimes, setAllTimes] = useState<Record<string, any>>({});
   const upsertTimeout = useRef<NodeJS.Timeout | null>(null);
   const pendingFields = useRef<Partial<Record<string, string>>>({});
@@ -188,7 +200,19 @@ export function useUserTimes(userId: string | null, selectedDate: Date | null) {
     [userId, selectedDate]
   );
 
-  return { allTimes, setTimeForDay };
+  return {
+    allTimes: {
+      [dateKey]: {
+        morningEntry: data?.morningEntry || "",
+        morningExit: data?.morningExit || "",
+        afternoonEntry: data?.afternoonEntry || "",
+        afternoonExit: data?.afternoonExit || "",
+      },
+    },
+    setTimeForDay,
+    isLoading,
+    error,
+  };
 }
 
 // Helper to get YYYY-MM-DD string from selectedDate
