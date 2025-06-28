@@ -201,14 +201,7 @@ export function useUserTimes(userId: string | null, selectedDate: Date | null) {
   );
 
   return {
-    allTimes: {
-      [dateKey]: {
-        morningEntry: data?.morningEntry || "",
-        morningExit: data?.morningExit || "",
-        afternoonEntry: data?.afternoonEntry || "",
-        afternoonExit: data?.afternoonExit || "",
-      },
-    },
+    allTimes,
     setTimeForDay,
     isLoading,
     error,
