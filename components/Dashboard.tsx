@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { account } from "@/app/appwrite";
 import NavBar from "./NavBar";
 import TimeClock from "./TimeClock";
+import Loading from "./Loading";
+import ErrorMessage from "./ErrorMessage";
 import { getDateKey, useUserTimes } from "@/utils/time";
 
 const Dashboard = () => {
@@ -12,7 +14,7 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const { allTimes, setTimeForDay } = useUserTimes(userId, selectedDate);
+  const { allTimes, setTimeForDay, isLoading, error } = useUserTimes(userId, selectedDate);
 
   // Check for active session and get userId
   useEffect(() => {
@@ -28,8 +30,9 @@ const Dashboard = () => {
       });
   }, [router]);
 
-  if (loading || !selectedDate) return null;
-  
+  if (loading || !selectedDate || isLoading) return <Loading />;
+  if (error) return <ErrorMessage message={error.message} />;
+
   const dateKey = selectedDate ? getDateKey(selectedDate) : "";
   const times = (allTimes && allTimes[dateKey]) || {
     morningEntry: "",
