@@ -45,6 +45,7 @@ const Dashboard = () => {
     <div className="h-screen w-screen relative">
       <NavBar
         iconHouse={false}
+        iconTable={true}
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
       />
