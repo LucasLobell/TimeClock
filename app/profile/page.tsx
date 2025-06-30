@@ -10,6 +10,7 @@ const page = () => {
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
+  // Fetch user ID on mount
   useEffect(() => {
     account.get().then(user => {
       setUserId(user.$id);
