@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent body scrolling for app pages */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 @import url("https://fonts.googleapis.com/css?family=Istok+Web:400|Inter:400");
       @font-face {
         font-family: "Digital Numbers-Regular";

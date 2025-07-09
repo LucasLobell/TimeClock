@@ -40,9 +40,9 @@ const DateComponent = ({ selectedDate, setSelectedDate }: DateComponentProps) =>
   if (!selectedDate) return null;
 
   return (
-    <div className="absolute flex flex-col items-center mt-[50px]">
+    <div className="relative flex flex-col items-center h-full">
       <div
-        className="flex flex-row items-center text-white cursor-pointer w-[348px]"
+        className="flex flex-row items-center text-white cursor-pointer w-[348px] hover:bg-gray-800 rounded-lg px-4 py-2 transition-colors h-12"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className={`${inter.variable} font-sans flex-grow text-center text-base font-normal`}>{formattedDate}</div>
@@ -51,11 +51,13 @@ const DateComponent = ({ selectedDate, setSelectedDate }: DateComponentProps) =>
         </div>
       </div>
       {isOpen && (
-        <Calendar
-          onChange={handleDateChange}
-          value={selectedDate}
-          locale="pt-BR"
-        />
+        <div className="absolute top-full mt-2 z-50">
+          <Calendar
+            onChange={handleDateChange}
+            value={selectedDate}
+            locale="pt-BR"
+          />
+        </div>
       )}
     </div>
   );
