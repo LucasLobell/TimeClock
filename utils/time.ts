@@ -94,34 +94,44 @@ const DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DB_ID!;
 const COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID!;
 
 export async function getTimesForUserDate(userId: string, date: string) {
-  const res = await databases.listDocuments(DB_ID, COLLECTION_ID, [
-    // Appwrite query: filter by userId and date
-    // @ts-ignore
-    Query.equal("userId", userId),
-    // @ts-ignore
-    Query.equal("date", date),
-  ]);
-  return res.documents[0] || null;
+  try {
+    const res = await databases.listDocuments(DB_ID, COLLECTION_ID, [
+      // Appwrite query: filter by userId and date
+      // @ts-ignore
+      Query.equal("userId", userId),
+      // @ts-ignore
+      Query.equal("date", date),
+    ]);
+    return res.documents[0] || null;
+  } catch (error: any) {
+    console.error("Error fetching times for user date:", error);
+    throw new Error(`Failed to fetch time data: ${error.message}`);
+  }
 }
 
 export async function upsertTimesForUserDate(userId: string, date: string, data: Partial<Record<string, string>>) {
-  // Try to find existing doc
-  const existing = await getTimesForUserDate(userId, date);
-  if (existing) {
-    // Update only the provided fields
-    return databases.updateDocument(DB_ID, COLLECTION_ID, existing.$id, data);
-  } else {
-    // Create new doc
-    return databases.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
-      userId,
-      date,
-      ...data,
-    });
+  try {
+    // Try to find existing doc
+    const existing = await getTimesForUserDate(userId, date);
+    if (existing) {
+      // Update only the provided fields
+      return await databases.updateDocument(DB_ID, COLLECTION_ID, existing.$id, data);
+    } else {
+      // Create new doc
+      return await databases.createDocument(DB_ID, COLLECTION_ID, ID.unique(), {
+        userId,
+        date,
+        ...data,
+      });
+    }
+  } catch (error: any) {
+    console.error("Error upserting times for user date:", error);
+    throw new Error(`Failed to save time data: ${error.message}`);
   }
 }
 
 export function useUserTimes(userId: string | null, selectedDate: Date | null) {
-  const dateKey = selectedDate ? selectedDate.toISOString().slice(0, 10) : "";
+  const dateKey = selectedDate ? getDateKey(selectedDate) : "";
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["userTimes", userId, dateKey],
@@ -136,26 +146,25 @@ export function useUserTimes(userId: string | null, selectedDate: Date | null) {
   const upsertTimeout = useRef<NodeJS.Timeout | null>(null);
   const pendingFields = useRef<Partial<Record<string, string>>>({});
 
+  // Update allTimes when data changes from React Query
   useEffect(() => {
-    if (!userId || !selectedDate) return;
-    const dateKey = selectedDate.toISOString().slice(0, 10);
-    getTimesForUserDate(userId, dateKey).then((doc) => {
+    if (data && dateKey) {
       setAllTimes((prev) => ({
         ...prev,
         [dateKey]: {
-          morningEntry: doc?.morningEntry || "",
-          morningExit: doc?.morningExit || "",
-          afternoonEntry: doc?.afternoonEntry || "",
-          afternoonExit: doc?.afternoonExit || "",
+          morningEntry: data.morningEntry || "",
+          morningExit: data.morningExit || "",
+          afternoonEntry: data.afternoonEntry || "",
+          afternoonExit: data.afternoonExit || "",
         },
       }));
-    });
-  }, [userId, selectedDate]);
+    }
+  }, [data, dateKey]);
 
   const setTimeForDay = useCallback(
     (fields: Partial<Record<string, string>>) => {
       if (!userId || !selectedDate) return;
-      const dateKey = selectedDate.toISOString().slice(0, 10);
+      const dateKey = getDateKey(selectedDate);
 
       setAllTimes((prev) => {
         const prevDay = prev[dateKey] || {
@@ -193,7 +202,8 @@ export function useUserTimes(userId: string | null, selectedDate: Date | null) {
         const validFields = Object.fromEntries(validEntries);
 
         upsertTimesForUserDate(userId, dateKey, validFields).catch((e) => {
-          console.error(e);
+          console.error("Error saving time data:", e);
+          // You could add a toast notification here
         });
       }, 100); // 100ms debounce
     },
@@ -210,5 +220,8 @@ export function useUserTimes(userId: string | null, selectedDate: Date | null) {
 
 // Helper to get YYYY-MM-DD string from selectedDate
 export function getDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
