@@ -28,9 +28,9 @@ const ProfilePage = () => {
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
       />
-      <h1 className="text-2xl font-bold mb-4">Time Entry History</h1>
-      {/* You could add month/year pickers here */}
-      <HistoryTable userId={userId} month={currentMonth} year={currentYear} />
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <HistoryTable userId={userId} month={currentMonth} year={currentYear} />
+      </div>
     </div>
   );
 };
