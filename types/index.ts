@@ -4,3 +4,10 @@ export interface INewUser {
     username: string;
     password: string;
 };
+
+export interface TimeEntry {
+    morningEntry?: string;
+    morningExit?: string;
+    afternoonEntry?: string;
+    afternoonExit?: string;
+}
