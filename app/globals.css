@@ -171,3 +171,9 @@ html, body {
     background-color: #3a3a3a;
   }
   
+  .time-picker input[type="time"] {
+    border: 1px solid #a0a096;
+    border-radius: 4px;
+    background-color: red;
+    color: white;
+  }

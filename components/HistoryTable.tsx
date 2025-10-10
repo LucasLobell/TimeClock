@@ -1,7 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useUserTimesRange } from "@/utils/useUserTimesRange";
 import { timeToMinutes } from "@/utils/time";
 import Loading from "./Loading";
+import {
+  handleMorningEntryChange,
+  handleMorningExitChange,
+  handleAfternoonEntryChange,
+  handleAfternoonExitChange,
+} from "@/utils/timeHandlers";
+import { upsertTimesForUserDate } from "@/utils/time";
 import { TimeEntry } from "@/types";
 
 interface HistoryTableProps {
@@ -38,17 +45,54 @@ const columns = [
   }},
 ];
 
+const EditableTimeCell = ({
+  value,
+  onChange,
+  disabled = false,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  disabled?: boolean;
+}) => {
+  const [editing, setEditing] = useState(false);
+  const [temp, setTemp] = useState(value);
+
+  return editing ? (
+    <input
+      type="time"
+      value={temp}
+      onChange={e => setTemp(e.target.value)}
+      onBlur={() => {
+        setEditing(false);
+        if (temp !== value) onChange(temp);
+      }}
+      className="time-picker bg-gray-700 text-white rounded px-2 py-1 w-24"
+      autoFocus
+      disabled={disabled}
+    />
+  ) : (
+    <span
+      onClick={() => !disabled && setEditing(true)}
+      className={`cursor-pointer ${disabled ? "opacity-50" : "hover:underline"}`}
+    >
+      {value}
+    </span>
+  );
+};
+
 const HistoryTable: React.FC<HistoryTableProps> = ({ userId, month, year }) => {
   const startDate = useMemo(() => new Date(year, month, 1), [year, month]);
   const endDate = useMemo(() => new Date(year, month + 1, 0), [year, month]);
   
-
-  
-
-  
-
-  
   const { timesByDate, loading, error } = useUserTimesRange(userId, startDate, endDate);
+
+  // Local state for editable data
+  const [localTimes, setLocalTimes] = useState(timesByDate);
+
+  // Keep localTimes in sync with fetched data
+  useEffect(() => {
+    setLocalTimes(timesByDate);
+  }, [timesByDate]);
 
   if (loading) return <Loading />;
   
@@ -97,7 +141,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ userId, month, year }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
-                {Object.keys(timesByDate).length === 0 ? (
+                {Object.keys(localTimes).length === 0 ? (
                   <tr>
                     <td 
                       colSpan={columns.length} 
@@ -107,16 +151,78 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ userId, month, year }) => {
                     </td>
                   </tr>
                 ) : (
-                  Object.entries(timesByDate).map(([date, times]) => (
+                  Object.entries(localTimes).map(([date, times]) => (
                       <tr key={date} className="hover:bg-gray-50 dark:hover:bg-neutral-800">
-                        {columns.map((col, idx) => (
-                          <td
-                            key={idx}
-                            className={`whitespace-nowrap text-center text-base font-medium text-gray-600 dark:text-neutral-300 py-2 px-4 leading-tight`}
-                          >
-                            {col.accessor(date, times)}
-                          </td>
-                        ))}
+                        {columns.map((col, idx) => {
+                          const isTimeField = ["Morning Entry", "Morning Exit", "Afternoon Entry", "Afternoon Exit"].includes(col.label);
+                          const fieldMap: Record<string, keyof TimeEntry> = {
+                            "Morning Entry": "morningEntry",
+                            "Morning Exit": "morningExit",
+                            "Afternoon Entry": "afternoonEntry",
+                            "Afternoon Exit": "afternoonExit",
+                          };
+                          const field = fieldMap[col.label];
+
+                          return (
+                            <td key={idx} className="whitespace-nowrap text-center text-base font-medium text-gray-600 dark:text-neutral-300 py-2 px-4 leading-tight">
+                              {isTimeField ? (
+                                <EditableTimeCell
+                                  value={col.accessor(date, times)}
+                                  onChange={async (newVal) => {
+                                    const updated: TimeEntry = { ...times };
+
+                                    // Use your existing handlers for validation/correction
+                                    if (field === "morningEntry") {
+                                      handleMorningEntryChange(
+                                        newVal,
+                                        times?.morningExit || "",
+                                        (v) => { updated.morningEntry = v; }
+                                      );
+                                    } else if (field === "morningExit") {
+                                      handleMorningExitChange(
+                                        newVal,
+                                        times?.morningEntry || "",
+                                        (v) => { updated.morningExit = v; },
+                                        { current: true }
+                                      );
+                                    } else if (field === "afternoonEntry") {
+                                      handleAfternoonEntryChange(
+                                        newVal,
+                                        times?.morningExit || "",
+                                        times?.afternoonExit || "",
+                                        (v) => { updated.afternoonEntry = v; },
+                                        { current: true }
+                                      );
+                                    } else if (field === "afternoonExit") {
+                                      handleAfternoonExitChange(
+                                        newVal,
+                                        times?.morningEntry || "",
+                                        times?.morningExit || "",
+                                        times?.afternoonEntry || "",
+                                        (v) => { updated.afternoonExit = v; },
+                                        { current: true }
+                                      );
+                                    }
+
+                                    // Save to backend
+                                    await upsertTimesForUserDate(userId, date, { [field]: updated[field] || "" });
+
+                                    // Update local state for immediate UI feedback
+                                    setLocalTimes(prev => ({
+                                      ...prev,
+                                      [date]: {
+                                        ...prev[date],
+                                        [field]: updated[field] || "",
+                                      }
+                                    }));
+                                  }}
+                                />
+                              ) : (
+                                col.accessor(date, times)
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))
                 )}
