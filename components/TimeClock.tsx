@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PointCard from "./PointCard";
 import {
   autoMorningExit,
@@ -26,12 +26,14 @@ import {
   MIN_AFTERNOON_HOURS,
   MAX_MORNING_ENTRY,
   MIN_MORNING_ENTRY,
+  WORKDAY_MINUTES
 } from "../constants/timeRules";
 import {
   isValidTime,
   minutesToTime,
   timeToMinutes
 } from "../utils/time";
+import { set } from "react-datepicker/dist/date_utils";
 
 /**
  * TimeClock component manages the logic and UI for a four-point time clock:
@@ -61,6 +63,8 @@ const TimeClock = ({
   const userChangedMorningExit = useRef(false);
   const userChangedAfternoonEntry = useRef(false);
   const userChangedAfternoonExit = useRef(false);
+
+  const [wrongTime, setWrongTime] = useState(false);
 
   // --- Auto & Validation Logic ---
 
@@ -183,10 +187,21 @@ useEffect(() => {
         userChangedAfternoonExit.current = false;
       }
     }
+    handleWrongTime();
     // eslint-disable-next-line
   }, [morningEntry, morningExit, afternoonEntry, morningExitWasSet]);
 
-  // --- Render ---
+  function handleWrongTime() {
+    const totalMinutes = morningEntry && morningExit && afternoonEntry && afternoonExit
+    ? timeToMinutes(morningExit) - timeToMinutes(morningEntry) +
+      timeToMinutes(afternoonExit) - timeToMinutes(afternoonEntry)
+    : 0;
+    if( afternoonEntry && totalMinutes > 470 ) {
+      setWrongTime(true);
+    } else {
+      setWrongTime(false);
+    }
+  }
 
   return (
     <div className="flex flex-wrap gap-6 justify-center">
@@ -209,18 +224,21 @@ useEffect(() => {
           )
         }
       />
-      <PointCard
-        label="Entrada da Tarde"
-        storageKey="afternoonEntry"
-        value={afternoonEntry}
-        setValue={val => handleAfternoonEntryChange(
-          val,
-          morningExit,
-          afternoonExit,
-          setAfternoonEntry,
-          userChangedAfternoonEntry
-        )}
-      />
+      <div className="relative items-center justify-center">
+        <PointCard
+          label="Entrada da Tarde"
+          storageKey="afternoonEntry"
+          value={afternoonEntry}
+          setValue={val => handleAfternoonEntryChange(
+            val,
+            morningExit,
+            afternoonExit,
+            setAfternoonEntry,
+            userChangedAfternoonEntry
+          )}
+          wrongTime={wrongTime}
+        />
+      </div>
       <PointCard
         label="Saída da Tarde"
         storageKey="afternoonExit"

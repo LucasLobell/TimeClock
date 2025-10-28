@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "./CCard";
 import { fixPartialTime, isValidTime, formatTimeInput } from "../utils/time";
 import { PointCardProps } from "../types/PointCardProps";
+import AlertComponent from "./ui/AlertComponent";
 
 const PointCard: React.FC<PointCardProps> = ({
   label,
@@ -11,8 +12,18 @@ const PointCard: React.FC<PointCardProps> = ({
   setValue,
   disabled = false,
   placeholder,
+  wrongTime = false,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
 
   const parseTime = (time: string, delta: number) => {
     const [hStr, mStr] = time.split(":");
@@ -34,8 +45,8 @@ const PointCard: React.FC<PointCardProps> = ({
   const bottomTime = value ? parseTime(value, 1) : "";
 
   return (
-    <div className="w-[348px] h-[280px]">
-      <Card className="relative h-full rounded-2xl border-[#6b6b6b] shadow-[-1px_1px_6px_1.25px_#59ff00]">
+    <div className="relative items-center justify-center w-[348px] h-[280px]" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <Card className={`relative h-full rounded-2xl border-[#6b6b6b] ${wrongTime ? 'shadow-[-1px_1px_6px_1.25px_#e0cf2f]' : 'shadow-[-1px_1px_6px_1.25px_#59ff00]'} `}>
         <CardContent className="p-6">
           {/* Title */}
           <div className="text-center mb-4">
@@ -106,6 +117,10 @@ const PointCard: React.FC<PointCardProps> = ({
           </div>
         </CardContent>
       </Card>
+      {isHovered && wrongTime && (
+        <AlertComponent />      
+      )
+      }
     </div>
   );
 };
