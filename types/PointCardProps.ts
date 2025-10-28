@@ -5,4 +5,5 @@ export interface PointCardProps {
   setValue: (val: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  wrongTime?: boolean;
 }
