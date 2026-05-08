@@ -1,5 +1,6 @@
 export interface TimeClockProps {
   selectedDate: Date;
+  strictTimeRuling: boolean;
   morningEntry: string;
   setMorningEntry: (v: string) => void;
   morningExit: string;
