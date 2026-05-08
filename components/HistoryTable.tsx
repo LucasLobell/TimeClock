@@ -10,6 +10,8 @@ import {
 } from "@/utils/timeHandlers";
 import { upsertTimesForUserDate } from "@/utils/time";
 import { TimeEntry } from "@/types";
+import { account } from "@/app/appwrite";
+import { getStrictTimeRulingPreference } from "@/utils/preferences";
 
 interface HistoryTableProps {
   userId: string;
@@ -88,11 +90,19 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ userId, month, year }) => {
 
   // Local state for editable data
   const [localTimes, setLocalTimes] = useState(timesByDate);
+  const [strictTimeRuling, setStrictTimeRuling] = useState(true);
 
   // Keep localTimes in sync with fetched data
   useEffect(() => {
     setLocalTimes(timesByDate);
   }, [timesByDate]);
+
+  // Fetch strictTimeRuling preference
+  useEffect(() => {
+    account.get().then(user => {
+      setStrictTimeRuling(getStrictTimeRulingPreference(user.prefs as Record<string, unknown>));
+    }).catch(() => {});
+  }, []);
 
   if (loading) return <Loading />;
   
@@ -176,14 +186,16 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ userId, month, year }) => {
                                       handleMorningEntryChange(
                                         newVal,
                                         times?.morningExit || "",
-                                        (v) => { updated.morningEntry = v; }
+                                        (v) => { updated.morningEntry = v; },
+                                        strictTimeRuling
                                       );
                                     } else if (field === "morningExit") {
                                       handleMorningExitChange(
                                         newVal,
                                         times?.morningEntry || "",
                                         (v) => { updated.morningExit = v; },
-                                        { current: true }
+                                        { current: true },
+                                        strictTimeRuling
                                       );
                                     } else if (field === "afternoonEntry") {
                                       handleAfternoonEntryChange(
@@ -191,7 +203,8 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ userId, month, year }) => {
                                         times?.morningExit || "",
                                         times?.afternoonExit || "",
                                         (v) => { updated.afternoonEntry = v; },
-                                        { current: true }
+                                        { current: true },
+                                        strictTimeRuling
                                       );
                                     } else if (field === "afternoonExit") {
                                       handleAfternoonExitChange(
@@ -200,7 +213,8 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ userId, month, year }) => {
                                         times?.morningExit || "",
                                         times?.afternoonEntry || "",
                                         (v) => { updated.afternoonExit = v; },
-                                        { current: true }
+                                        { current: true },
+                                        strictTimeRuling
                                       );
                                     }
 
