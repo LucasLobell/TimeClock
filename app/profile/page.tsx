@@ -5,23 +5,30 @@ import { account } from '@/app/appwrite'
 import NavBar from '@/components/NavBar'
 import Loading from '@/components/Loading'
 import React from 'react'
+import { useRouter } from 'next/navigation'
+import { set } from 'react-datepicker/dist/date_utils'
 
 const page = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [loggedInUser, setLoggedInUser] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  useEffect(() => {
-    account.get().then(user => {
-      setUserId(user.$id);
-      setSelectedDate(new Date());
-      setLoggedInUser(user);
-      setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
-  }, []);
+    // Check for active session and get userId
+    useEffect(() => {
+      account
+        .get()
+        .then((user) => {
+          setUserId(user.$id);
+          setLoggedInUser(user);
+          setLoading(false);
+          setSelectedDate(new Date());
+        })
+        .catch(() => {
+          router.replace("/login");
+        });
+    }, [router]);
 
   if (loading) {
     return (
