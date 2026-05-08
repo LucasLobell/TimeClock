@@ -15,25 +15,14 @@ import {
   handleAfternoonExitChange,
 } from "../utils/timeHandlers";
 import {
-  MIN_LUNCH_BREAK,
-  MAX_AFTERNOON_ENTRY,
-  MAX_AFTERNOON_EXIT,
-  MIN_AFTERNOON_EXIT,
-  MIN_MORNING_EXIT,
-  MIN_MORNING_HOURS,
-  MAX_MORNING_HOURS,
-  MAX_AFTERNOON_HOURS,
-  MIN_AFTERNOON_HOURS,
-  MAX_MORNING_ENTRY,
-  MIN_MORNING_ENTRY,
-  WORKDAY_MINUTES
+  MIN_LUNCH_BREAK, MAX_AFTERNOON_EXIT,
+  MIN_AFTERNOON_EXIT
 } from "../constants/timeRules";
 import {
   isValidTime,
   minutesToTime,
   timeToMinutes
 } from "../utils/time";
-import { set } from "react-datepicker/dist/date_utils";
 
 /**
  * TimeClock component manages the logic and UI for a four-point time clock:
@@ -75,9 +64,7 @@ const TimeClock = ({
   useEffect(() => {
     if (
       isValidTime(morningEntry) &&
-      (!userChangedMorningExit.current ||
-        morningExit === "" ||
-        morningExit === autoMorningExit(morningEntry))
+      morningExit === ""
     ) {
       const autoValue = autoMorningExit(morningEntry);
       setMorningExit(autoValue);
@@ -145,11 +132,10 @@ useEffect(() => {
   /**
    * Auto-set afternoonExit when any dependency changes,
    * unless user changed it or it matches the auto value,
-   * and only after morningExitWasSet.
+   * whenever required inputs are valid.
    */
   useEffect(() => {
     if (
-      morningExitWasSet &&
       isValidTime(morningEntry) &&
       isValidTime(morningExit) &&
       isValidTime(afternoonEntry)
@@ -189,14 +175,14 @@ useEffect(() => {
     }
     handleWrongTime();
     // eslint-disable-next-line
-  }, [morningEntry, morningExit, afternoonEntry, morningExitWasSet]);
+  }, [morningEntry, morningExit, afternoonEntry]);
 
   function handleWrongTime() {
     const totalMinutes = morningEntry && morningExit && afternoonEntry && afternoonExit
     ? timeToMinutes(morningExit) - timeToMinutes(morningEntry) +
       timeToMinutes(afternoonExit) - timeToMinutes(afternoonEntry)
     : 0;
-    if( afternoonEntry && totalMinutes > 470 ) {
+    if( afternoonEntry && totalMinutes > 490 ) {
       setWrongTime(true);
     } else {
       setWrongTime(false);
