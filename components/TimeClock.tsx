@@ -196,7 +196,7 @@ useEffect(() => {
     ? timeToMinutes(morningExit) - timeToMinutes(morningEntry) +
       timeToMinutes(afternoonExit) - timeToMinutes(afternoonEntry)
     : 0;
-    if( afternoonEntry && totalMinutes > 470 ) {
+    if( afternoonEntry && totalMinutes > 490 ) {
       setWrongTime(true);
     } else {
       setWrongTime(false);
