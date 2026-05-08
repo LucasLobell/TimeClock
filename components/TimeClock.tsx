@@ -15,25 +15,14 @@ import {
   handleAfternoonExitChange,
 } from "../utils/timeHandlers";
 import {
-  MIN_LUNCH_BREAK,
-  MAX_AFTERNOON_ENTRY,
-  MAX_AFTERNOON_EXIT,
-  MIN_AFTERNOON_EXIT,
-  MIN_MORNING_EXIT,
-  MIN_MORNING_HOURS,
-  MAX_MORNING_HOURS,
-  MAX_AFTERNOON_HOURS,
-  MIN_AFTERNOON_HOURS,
-  MAX_MORNING_ENTRY,
-  MIN_MORNING_ENTRY,
-  WORKDAY_MINUTES
+  MIN_LUNCH_BREAK, MAX_AFTERNOON_EXIT,
+  MIN_AFTERNOON_EXIT
 } from "../constants/timeRules";
 import {
   isValidTime,
   minutesToTime,
   timeToMinutes
 } from "../utils/time";
-import { set } from "react-datepicker/dist/date_utils";
 
 /**
  * TimeClock component manages the logic and UI for a four-point time clock:
@@ -75,9 +64,7 @@ const TimeClock = ({
   useEffect(() => {
     if (
       isValidTime(morningEntry) &&
-      (!userChangedMorningExit.current ||
-        morningExit === "" ||
-        morningExit === autoMorningExit(morningEntry))
+      morningExit === ""
     ) {
       const autoValue = autoMorningExit(morningEntry);
       setMorningExit(autoValue);
