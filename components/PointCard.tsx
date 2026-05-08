@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "./CCard";
 import { fixPartialTime, isValidTime, formatTimeInput } from "../utils/time";
 import { PointCardProps } from "../types/PointCardProps";
 import AlertComponent from "./ui/AlertComponent";
+
+type Phase = "idle" | "flickering" | "on";
 
 const PointCard: React.FC<PointCardProps> = ({
   label,
@@ -16,6 +18,53 @@ const PointCard: React.FC<PointCardProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [mainPhase, setMainPhase] = useState<Phase>("idle");
+  const [topPhase, setTopPhase] = useState<Phase>("idle");
+  const [bottomPhase, setBottomPhase] = useState<Phase>("idle");
+  // Store random delays once per card instance
+  const delaysRef = useRef({
+    cardDelay: Math.random() * 225,
+    topDelay: 80 + Math.random() * 200,
+    bottomDelay: 80 + Math.random() * 200,
+  });
+
+  useEffect(() => {
+    const { cardDelay, topDelay, bottomDelay } = delaysRef.current;
+
+    const mainTimer = setTimeout(() => {
+      setMainPhase("flickering");
+      const mainDone = setTimeout(() => {
+        setMainPhase("on");
+
+        const topTimer = setTimeout(() => {
+          setTopPhase("flickering");
+          const topDone = setTimeout(() => setTopPhase("on"), 140);
+          return () => clearTimeout(topDone);
+        }, topDelay);
+
+        const bottomTimer = setTimeout(() => {
+          setBottomPhase("flickering");
+          const bottomDone = setTimeout(() => setBottomPhase("on"), 140);
+          return () => clearTimeout(bottomDone);
+        }, bottomDelay);
+
+        return () => {
+          clearTimeout(topTimer);
+          clearTimeout(bottomTimer);
+        };
+      }, 140);
+      return () => clearTimeout(mainDone);
+    }, cardDelay);
+
+    return () => clearTimeout(mainTimer);
+  }, []);
+
+  const mainStyle: React.CSSProperties =
+    mainPhase === "idle" ? { opacity: 0 } : {};
+  const topStyle: React.CSSProperties =
+    topPhase === "idle" ? { opacity: 0 } : {};
+  const bottomStyle: React.CSSProperties =
+    bottomPhase === "idle" ? { opacity: 0 } : {};
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -49,28 +98,32 @@ const PointCard: React.FC<PointCardProps> = ({
       <Card className={`relative h-full rounded-2xl border-[#6b6b6b] ${wrongTime ? 'shadow-[-1px_1px_6px_1.25px_#e0cf2f]' : 'shadow-[-1px_1px_6px_1.25px_#59ff00]'} `}>
         <CardContent className="p-6">
           {/* Title */}
-          <div className="text-center mb-4">
+          <div className="text-center mb-4 select-none">
             <h2 className="font-['Istok_Web'] text-xl text-[#d9d9d9]">
               {label}
             </h2>
           </div>
 
           {/* Top Time */}
-          <div className="relative w-20 h-[22px] mx-auto mb-2">
-            <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-xl text-center text-[#ffffff0d]">
+          <div
+            className={`relative select-none w-20 h-[22px] mx-auto mb-2 ${topPhase === "flickering" ? "flicker-on" : ""}`}
+            style={topStyle}
+          >
+            <div className="absolute select-none inset-0 font-['Digital_Numbers-Regular'] text-xl text-center text-[#ffffff0d]">
               88:88
             </div>
-            <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-xl text-center text-[#ffffffbf]">
+            <div className="absolute select-none inset-0 font-['Digital_Numbers-Regular'] text-xl text-center text-[#ffffffbf]">
               {topTime}
             </div>
           </div>
 
           {/* Center Time - Editable */}
           <div
-            className="relative w-74 h-[90px] mx-auto my-4 cursor-pointer"
+            className={`relative select-none w-74 h-[90px] mx-auto my-4 cursor-pointer ${mainPhase === "flickering" ? "flicker-on" : ""}`}
+            style={mainStyle}
             onClick={() => !disabled && setIsEditing(true)}
           >
-            <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-[64px] text-center text-[#ffffff14] opacity-90">
+            <div className="absolute select-none inset-0 font-['Digital_Numbers-Regular'] text-[64px] text-center text-[#ffffff14] opacity-90">
               88:88
             </div>
 
@@ -100,7 +153,10 @@ const PointCard: React.FC<PointCardProps> = ({
           </div>
 
           {/* Bottom Time */}
-          <div className="relative w-20 h-[22px] mx-auto mb-4">
+          <div
+            className={`relative select-none w-20 h-[22px] mx-auto mb-4 ${bottomPhase === "flickering" ? "flicker-on" : ""}`}
+            style={bottomStyle}
+          >
             <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-xl text-center text-[#ffffff0d]">
               88:88
             </div>
@@ -110,7 +166,7 @@ const PointCard: React.FC<PointCardProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="text-center">
+          <div className="text-center select-none">
             <span className="font-['Inter'] text-base text-white [text-shadow:0px_0px_1.5px_#59ff00]">
               Efetivo
             </span>
