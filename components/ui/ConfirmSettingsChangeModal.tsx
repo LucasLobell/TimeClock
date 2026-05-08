@@ -46,7 +46,7 @@ const ConfirmSettingsChangeModal = ({
             type="button"
             onClick={onConfirm}
             disabled={isSaving}
-            className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-500 disabled:opacity-60"
+            className="rounded-md bg-green-600/90 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-500/90 disabled:opacity-60"
           >
             {isSaving ? "Saving..." : "Yes, change"}
           </button>

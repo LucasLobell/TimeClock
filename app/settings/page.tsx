@@ -119,7 +119,7 @@ const SettingsPage = () => {
               onClick={requestStrictTimeRulingToggle}
               disabled={isSavingStrictTimeRuling}
               className={`relative inline-flex h-8 w-16 items-center rounded-full border border-transparent transition-colors duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-[#59ff00] focus:ring-offset-2 focus:ring-offset-gray-800 ${
-                strictTimeRuling ? "bg-[#59ff00]/90" : "bg-gray-600"
+                strictTimeRuling ? "bg-green-600/90" : "bg-gray-600"
               } ${isSavingStrictTimeRuling ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
             >
               <span
