@@ -132,11 +132,10 @@ useEffect(() => {
   /**
    * Auto-set afternoonExit when any dependency changes,
    * unless user changed it or it matches the auto value,
-   * and only after morningExitWasSet.
+   * whenever required inputs are valid.
    */
   useEffect(() => {
     if (
-      morningExitWasSet &&
       isValidTime(morningEntry) &&
       isValidTime(morningExit) &&
       isValidTime(afternoonEntry)
@@ -176,7 +175,7 @@ useEffect(() => {
     }
     handleWrongTime();
     // eslint-disable-next-line
-  }, [morningEntry, morningExit, afternoonEntry, morningExitWasSet]);
+  }, [morningEntry, morningExit, afternoonEntry]);
 
   function handleWrongTime() {
     const totalMinutes = morningEntry && morningExit && afternoonEntry && afternoonExit
