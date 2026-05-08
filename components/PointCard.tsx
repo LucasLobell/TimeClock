@@ -5,6 +5,8 @@ import { Card, CardContent } from "./CCard";
 import { fixPartialTime, isValidTime, formatTimeInput } from "../utils/time";
 import { PointCardProps } from "../types/PointCardProps";
 import AlertComponent from "./ui/AlertComponent";
+import DigitalDisplay from "./ui/DigitalDisplay";
+import { useFlickerOn } from "../utils/useFlickerOn";
 
 const PointCard: React.FC<PointCardProps> = ({
   label,
@@ -16,6 +18,8 @@ const PointCard: React.FC<PointCardProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const { mainPhase, mainStyle, topPhase, topStyle, bottomPhase, bottomStyle } =
+    useFlickerOn();
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -47,30 +51,29 @@ const PointCard: React.FC<PointCardProps> = ({
   return (
     <div className="relative items-center justify-center w-[348px] h-[280px]" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <Card className={`relative h-full rounded-2xl border-[#6b6b6b] ${wrongTime ? 'shadow-[-1px_1px_6px_1.25px_#e0cf2f]' : 'shadow-[-1px_1px_6px_1.25px_#59ff00]'} `}>
-        <CardContent className="p-6">
+        <CardContent>
           {/* Title */}
-          <div className="text-center mb-4">
+          <div className="text-center mb-4 select-none">
             <h2 className="font-['Istok_Web'] text-xl text-[#d9d9d9]">
               {label}
             </h2>
           </div>
 
           {/* Top Time */}
-          <div className="relative w-20 h-[22px] mx-auto mb-2">
-            <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-xl text-center text-[#ffffff0d]">
-              88:88
-            </div>
-            <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-xl text-center text-[#ffffffbf]">
-              {topTime}
-            </div>
-          </div>
+          <DigitalDisplay
+            value={topTime}
+            phase={topPhase}
+            style={topStyle}
+            className="mb-2"
+          />
 
           {/* Center Time - Editable */}
           <div
-            className="relative w-74 h-[90px] mx-auto my-4 cursor-pointer"
+            className={`relative select-none w-74 h-[90px] mx-auto my-4 cursor-pointer ${mainPhase === "flickering" ? "flicker-on" : ""}`}
+            style={mainStyle}
             onClick={() => !disabled && setIsEditing(true)}
           >
-            <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-[64px] text-center text-[#ffffff14] opacity-90">
+            <div className="absolute select-none inset-0 font-['Digital_Numbers-Regular'] text-[64px] text-center text-[#ffffff14] opacity-90">
               88:88
             </div>
 
@@ -100,17 +103,15 @@ const PointCard: React.FC<PointCardProps> = ({
           </div>
 
           {/* Bottom Time */}
-          <div className="relative w-20 h-[22px] mx-auto mb-4">
-            <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-xl text-center text-[#ffffff0d]">
-              88:88
-            </div>
-            <div className="absolute inset-0 font-['Digital_Numbers-Regular'] text-xl text-center text-[#ffffffbf]">
-              {bottomTime}
-            </div>
-          </div>
+          <DigitalDisplay
+            value={bottomTime}
+            phase={bottomPhase}
+            style={bottomStyle}
+            className="mb-4"
+          />
 
           {/* Footer */}
-          <div className="text-center">
+          <div className="text-center select-none">
             <span className="font-['Inter'] text-base text-white [text-shadow:0px_0px_1.5px_#59ff00]">
               Efetivo
             </span>

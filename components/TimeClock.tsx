@@ -23,6 +23,7 @@ import {
   minutesToTime,
   timeToMinutes
 } from "../utils/time";
+import TotalCard from "./ui/TotalCard";
 
 /**
  * TimeClock component manages the logic and UI for a four-point time clock:
@@ -210,56 +211,74 @@ useEffect(() => {
   }
 
   return (
-    <div className="flex flex-wrap gap-6 justify-center">
-      <PointCard
-        label="Entrada da Manhã"
-        storageKey="morningEntry"
-        value={morningEntry}
-        setValue={val => handleMorningEntryChange(val, morningExit, setMorningEntry, strictTimeRuling)}
-      />
-      <PointCard
-        label="Saída da Manhã"
-        storageKey="morningExit"
-        value={morningExit}
-        setValue={val =>
-          handleMorningExitChange(
-            val,
-            morningEntry,
-            setMorningExit,
-            userChangedMorningExit,
-            strictTimeRuling,
-          )
-        }
-      />
-      <div className="relative items-center justify-center">
+    <div className="relative flex flex-col justify-center items-center">
+      <div className="flex flex-wrap gap-6 justify-center">
         <PointCard
-          label="Entrada da Tarde"
-          storageKey="afternoonEntry"
-          value={afternoonEntry}
-          setValue={val => handleAfternoonEntryChange(
-            val,
-            morningExit,
-            afternoonExit,
-            setAfternoonEntry,
-            userChangedAfternoonEntry,
-            strictTimeRuling
-          )}
-          wrongTime={wrongTime}
+          label="Entrada da Manhã"
+          storageKey="morningEntry"
+          value={morningEntry}
+          setValue={(val) =>
+            handleMorningEntryChange(val, morningExit, setMorningEntry, strictTimeRuling)
+          }
+        />
+        <PointCard
+          label="Saída da Manhã"
+          storageKey="morningExit"
+          value={morningExit}
+          setValue={(val) =>
+            handleMorningExitChange(
+              val,
+              morningEntry,
+              setMorningExit,
+              userChangedMorningExit,
+              strictTimeRuling
+            )
+          }
+        />
+        <div className="relative items-center justify-center">
+          <PointCard
+            label="Entrada da Tarde"
+            storageKey="afternoonEntry"
+            value={afternoonEntry}
+            setValue={(val) =>
+              handleAfternoonEntryChange(
+                val,
+                morningExit,
+                afternoonExit,
+                setAfternoonEntry,
+                userChangedAfternoonEntry,
+                strictTimeRuling
+              )
+            }
+            wrongTime={wrongTime}
+          />
+        </div>
+        <PointCard
+          label="Saída da Tarde"
+          storageKey="afternoonExit"
+          value={afternoonExit}
+          setValue={(val) =>
+            handleAfternoonExitChange(
+              val,
+              morningEntry,
+              morningExit,
+              afternoonEntry,
+              setAfternoonExit,
+              userChangedAfternoonExit,
+              strictTimeRuling
+            )
+          }
         />
       </div>
-      <PointCard
-        label="Saída da Tarde"
-        storageKey="afternoonExit"
-        value={afternoonExit}
-        setValue={val => handleAfternoonExitChange(
-          val,
-          morningEntry,
-          morningExit,
-          afternoonEntry,
-          setAfternoonExit,
-          userChangedAfternoonExit,
-          strictTimeRuling
-        )}
+      <TotalCard
+        value={
+          morningEntry && morningExit && afternoonEntry && afternoonExit
+            ? minutesToTime(
+                timeToMinutes(morningExit) - timeToMinutes(morningEntry) +
+                timeToMinutes(afternoonExit) - timeToMinutes(afternoonEntry)
+              )
+            : ""
+        }
       />
     </div>
   );
