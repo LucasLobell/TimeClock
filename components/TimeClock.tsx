@@ -39,6 +39,7 @@ import {
  * @param {TimeClockProps} props - The props for TimeClock.
  */
 const TimeClock = ({
+  strictTimeRuling,
   morningEntry,
   setMorningEntry,
   morningExit,
@@ -62,6 +63,10 @@ const TimeClock = ({
    * unless user changed it or it matches the auto value.
    */
   useEffect(() => {
+    if (!strictTimeRuling) {
+      return;
+    }
+
     if (
       isValidTime(morningEntry) &&
       morningExit === ""
@@ -71,7 +76,7 @@ const TimeClock = ({
       userChangedMorningExit.current = false;
     }
     // eslint-disable-next-line
-  }, [morningEntry]);
+  }, [morningEntry, strictTimeRuling]);
 
   // Track if morningExit was set by the user at least once
   const [morningExitWasSet, setMorningExitWasSet] = React.useState(false);
@@ -88,6 +93,10 @@ const TimeClock = ({
   }, [morningExit, morningEntry]);
 
 useEffect(() => {
+  if (!strictTimeRuling) {
+    return;
+  }
+
   if (
     isValidTime(morningExit) &&
     isValidTime(afternoonEntry)
@@ -106,6 +115,10 @@ useEffect(() => {
    * and only after morningExitWasSet.
    */
   useEffect(() => {
+    if (!strictTimeRuling) {
+      return;
+    }
+
     if (
       morningExitWasSet &&
       isValidTime(morningExit)
@@ -127,7 +140,7 @@ useEffect(() => {
       }
     }
     // eslint-disable-next-line
-  }, [morningExit, morningExitWasSet]);
+  }, [morningExit, morningExitWasSet, strictTimeRuling, afternoonEntry]);
 
   /**
    * Auto-set afternoonExit when any dependency changes,
@@ -135,49 +148,56 @@ useEffect(() => {
    * whenever required inputs are valid.
    */
   useEffect(() => {
-    if (
-      isValidTime(morningEntry) &&
-      isValidTime(morningExit) &&
-      isValidTime(afternoonEntry)
-    ) {
-      const autoValue = autoAfternoonExit(morningEntry, morningExit, afternoonEntry);
-      const estimated = autoValue;
-      const estimatedMinutes = timeToMinutes(estimated);
-      let minExit = estimatedMinutes - 5;
-      const strictMaxBy5h = timeToMinutes(afternoonEntry) + 5 * 60;
-      const strictMaxBy19 = timeToMinutes(MAX_AFTERNOON_EXIT);
-      const maxExit = Math.min(
-        estimatedMinutes + 10,
-        strictMaxBy5h + 10,
-        strictMaxBy19 + 10
-      );
-      // Use a valid time string for min
-      minExit = Math.max(
-        minExit,
-        timeToMinutes(MIN_AFTERNOON_EXIT),
-        timeToMinutes(afternoonEntry) + 3 * 60
-      );
-      const minAllowed = { min: minExit, max: maxExit };
-
-      const currentMinutes = timeToMinutes(afternoonExit);
-
-      // If user never changed, or it's empty, or matches auto, or is now invalid (out of allowed range)
+    if (strictTimeRuling) {
       if (
-        !userChangedAfternoonExit.current ||
-        afternoonExit === "" ||
-        afternoonExit === autoValue ||
-        currentMinutes < minAllowed.min ||
-        currentMinutes > minAllowed.max
+        isValidTime(morningEntry) &&
+        isValidTime(morningExit) &&
+        isValidTime(afternoonEntry)
       ) {
-        setAfternoonExit(autoValue);
-        userChangedAfternoonExit.current = false;
+        const autoValue = autoAfternoonExit(morningEntry, morningExit, afternoonEntry);
+        const estimated = autoValue;
+        const estimatedMinutes = timeToMinutes(estimated);
+        let minExit = estimatedMinutes - 5;
+        const strictMaxBy5h = timeToMinutes(afternoonEntry) + 5 * 60;
+        const strictMaxBy19 = timeToMinutes(MAX_AFTERNOON_EXIT);
+        const maxExit = Math.min(
+          estimatedMinutes + 10,
+          strictMaxBy5h + 10,
+          strictMaxBy19 + 10
+        );
+
+        minExit = Math.max(
+          minExit,
+          timeToMinutes(MIN_AFTERNOON_EXIT),
+          timeToMinutes(afternoonEntry) + 3 * 60
+        );
+        const minAllowed = { min: minExit, max: maxExit };
+
+        const currentMinutes = timeToMinutes(afternoonExit);
+
+        if (
+          !userChangedAfternoonExit.current ||
+          afternoonExit === "" ||
+          afternoonExit === autoValue ||
+          currentMinutes < minAllowed.min ||
+          currentMinutes > minAllowed.max
+        ) {
+          setAfternoonExit(autoValue);
+          userChangedAfternoonExit.current = false;
+        }
       }
     }
+
     handleWrongTime();
     // eslint-disable-next-line
-  }, [morningEntry, morningExit, afternoonEntry]);
+  }, [morningEntry, morningExit, afternoonEntry, strictTimeRuling, afternoonExit]);
 
   function handleWrongTime() {
+    if (!strictTimeRuling) {
+      setWrongTime(false);
+      return;
+    }
+
     const totalMinutes = morningEntry && morningExit && afternoonEntry && afternoonExit
     ? timeToMinutes(morningExit) - timeToMinutes(morningEntry) +
       timeToMinutes(afternoonExit) - timeToMinutes(afternoonEntry)
@@ -195,7 +215,7 @@ useEffect(() => {
         label="Entrada da Manhã"
         storageKey="morningEntry"
         value={morningEntry}
-        setValue={val => handleMorningEntryChange(val, morningExit, setMorningEntry)}
+        setValue={val => handleMorningEntryChange(val, morningExit, setMorningEntry, strictTimeRuling)}
       />
       <PointCard
         label="Saída da Manhã"
@@ -207,6 +227,7 @@ useEffect(() => {
             morningEntry,
             setMorningExit,
             userChangedMorningExit,
+            strictTimeRuling,
           )
         }
       />
@@ -220,7 +241,8 @@ useEffect(() => {
             morningExit,
             afternoonExit,
             setAfternoonEntry,
-            userChangedAfternoonEntry
+            userChangedAfternoonEntry,
+            strictTimeRuling
           )}
           wrongTime={wrongTime}
         />
@@ -235,7 +257,8 @@ useEffect(() => {
           morningExit,
           afternoonEntry,
           setAfternoonExit,
-          userChangedAfternoonExit
+          userChangedAfternoonExit,
+          strictTimeRuling
         )}
       />
     </div>

@@ -31,14 +31,17 @@ import {
 export function handleMorningEntryChange(
   val: string,
   morningExit: string,
-  setMorningEntry: (v: string) => void
+  setMorningEntry: (v: string) => void,
+  strictTimeRuling: boolean
 ) {
   let v = val;
   if (v.length === 5) {
     v = fixPartialTime(v);
   }
   if (isValidTime(v)) {
-    v = clampTime(v, MIN_MORNING_ENTRY, MAX_MORNING_ENTRY);
+    if (strictTimeRuling) {
+      v = clampTime(v, MIN_MORNING_ENTRY, MAX_MORNING_ENTRY);
+    }
     if (isValidTime(morningExit) && timeToMinutes(v) > timeToMinutes(morningExit)) {
       v = morningExit;
     }
@@ -59,12 +62,13 @@ export function handleMorningExitChange(
   val: string,
   morningEntry: string,
   setMorningExit: (v: string) => void,
-  userChangedMorningExit: React.MutableRefObject<boolean>
+  userChangedMorningExit: React.MutableRefObject<boolean>,
+  strictTimeRuling: boolean
 ) {
   let v = val;
   if (v.length === 5) v = fixPartialTime(v);
   let wasCorrected = false;
-  if (isValidTime(v) && isValidTime(morningEntry)) {
+  if (strictTimeRuling && isValidTime(v) && isValidTime(morningEntry)) {
     const minExit = Math.max(
       timeToMinutes(morningEntry) + MIN_MORNING_HOURS * 60,
       timeToMinutes(MIN_MORNING_EXIT)
@@ -79,6 +83,9 @@ export function handleMorningExitChange(
       v = morningEntry;
       wasCorrected = true;
     }
+  } else if (isValidTime(v) && isValidTime(morningEntry) && timeToMinutes(v) < timeToMinutes(morningEntry)) {
+    v = morningEntry;
+    wasCorrected = true;
   }
 
   setMorningExit(v);
@@ -97,7 +104,8 @@ export function handleAfternoonEntryChange(
   morningExit: string,
   afternoonExit: string,
   setAfternoonEntry: (v: string) => void,
-  userChangedAfternoonEntry: React.MutableRefObject<boolean>
+  userChangedAfternoonEntry: React.MutableRefObject<boolean>,
+  strictTimeRuling: boolean
 ) {
   let v = val;
   if (v.length === 5) {
@@ -105,20 +113,24 @@ export function handleAfternoonEntryChange(
   }
   let wasCorrected = false;
   if (isValidTime(v) && isValidTime(morningExit)) {
-    const minEntry = timeToMinutes(morningExit) + MIN_LUNCH_BREAK;
-    const maxEntry = timeToMinutes(MAX_AFTERNOON_ENTRY);
-    const vMin = minutesToTime(minEntry);
-    const vMax = minutesToTime(maxEntry);
-    const original = v;
-    v = clampTime(v, vMin, vMax);
-    if (v !== original) wasCorrected = true;
-    // Cannot be before morningExit
+    if (strictTimeRuling) {
+      const minEntry = timeToMinutes(morningExit) + MIN_LUNCH_BREAK;
+      const maxEntry = timeToMinutes(MAX_AFTERNOON_ENTRY);
+      const vMin = minutesToTime(minEntry);
+      const vMax = minutesToTime(maxEntry);
+      const original = v;
+      v = clampTime(v, vMin, vMax);
+      if (v !== original) wasCorrected = true;
+    }
+
     if (timeToMinutes(v) < timeToMinutes(morningExit)) {
       v = morningExit;
+      wasCorrected = true;
     }
-    // Cannot be after afternoonExit
+
     if (isValidTime(afternoonExit) && timeToMinutes(v) > timeToMinutes(afternoonExit)) {
       v = afternoonExit;
+      wasCorrected = true;
     }
   }
   setAfternoonEntry(v);
@@ -140,7 +152,8 @@ export function handleAfternoonExitChange(
   morningExit: string,
   afternoonEntry: string,
   setAfternoonExit: (v: string) => void,
-  userChangedAfternoonExit: React.MutableRefObject<boolean>
+  userChangedAfternoonExit: React.MutableRefObject<boolean>,
+  strictTimeRuling: boolean
 ) {
   let v = val;
   if (v.length === 5) {
@@ -148,6 +161,7 @@ export function handleAfternoonExitChange(
   }
   let wasCorrected = false;
   if (
+    strictTimeRuling &&
     isValidTime(v) &&
     isValidTime(morningEntry) &&
     isValidTime(morningExit) &&
@@ -183,6 +197,13 @@ export function handleAfternoonExitChange(
     if (timeToMinutes(v) < timeToMinutes(afternoonEntry)) {
       v = afternoonEntry;
     }
+  } else if (
+    isValidTime(v) &&
+    isValidTime(afternoonEntry) &&
+    timeToMinutes(v) < timeToMinutes(afternoonEntry)
+  ) {
+    v = afternoonEntry;
+    wasCorrected = true;
   }
   setAfternoonExit(v);
   userChangedAfternoonExit.current = !wasCorrected;

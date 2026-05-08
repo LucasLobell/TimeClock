@@ -8,12 +8,14 @@ import TimeClock from "./TimeClock";
 import PageLoadingShell from "./PageLoadingShell";
 import ErrorMessage from "./ErrorMessage";
 import { getDateKey, useUserTimes } from "@/utils/time";
+import { getStrictTimeRulingPreference } from "../utils/preferences";
 
 const Dashboard = () => {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [strictTimeRuling, setStrictTimeRuling] = useState(true);
   const { allTimes, setTimeForDay, isLoading, error } = useUserTimes(userId, selectedDate);
 
   // Check for active session and get userId
@@ -22,6 +24,7 @@ const Dashboard = () => {
       .get()
       .then((user) => {
         setUserId(user.$id);
+        setStrictTimeRuling(getStrictTimeRulingPreference(user.prefs as Record<string, unknown>));
         setLoading(false);
         setSelectedDate(new Date());
       })
@@ -54,6 +57,7 @@ const Dashboard = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <TimeClock
           selectedDate={selectedDate}
+          strictTimeRuling={strictTimeRuling}
           morningEntry={times.morningEntry}
           setMorningEntry={(v) => setTimeForDay({ morningEntry: v })}
           morningExit={times.morningExit}
