@@ -1,3 +1,10 @@
+@import url("https://fonts.googleapis.com/css?family=Istok+Web:400|Inter:400");
+      @font-face {
+        font-family: "Digital Numbers-Regular";
+        src: url("https://anima-uploads.s3.amazonaws.com/5e3be6201600a56d85ac84fa/DigitalNumbers-Regular.ttf")
+          format("truetype");
+      }
+      
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -30,12 +37,6 @@ html, body {
   overflow: hidden;
 }
 
-@import url("https://fonts.googleapis.com/css?family=Istok+Web:400|Inter:400");
-      @font-face {
-        font-family: "Digital Numbers-Regular";
-        src: url("https://anima-uploads.s3.amazonaws.com/5e3be6201600a56d85ac84fa/DigitalNumbers-Regular.ttf")
-          format("truetype");
-      }
 
 .react-calendar {
     width: 350px;
