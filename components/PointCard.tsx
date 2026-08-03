@@ -49,7 +49,7 @@ const PointCard: React.FC<PointCardProps> = ({
   const bottomTime = value ? parseTime(value, 1) : "";
 
   return (
-    <div className="relative items-center justify-center w-[348px] h-[280px]" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <div className="relative items-center justify-center w-[29rem] h-[23.5rem]" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <Card className={`relative h-full rounded-2xl border-[#6b6b6b] ${wrongTime ? 'shadow-[-1px_1px_6px_1.25px_#e0cf2f]' : 'shadow-[-1px_1px_6px_1.25px_#59ff00]'} `}>
         <CardContent>
           {/* Title */}
